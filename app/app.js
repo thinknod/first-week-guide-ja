@@ -21,9 +21,15 @@ function loadDone() {
 function saveDone() {
   try { localStorage.setItem(KEY, JSON.stringify(done)); } catch (e) { /* 保存できなくても画面はそのまま */ }
 }
-function toggle(id) {
-  if (done[id]) delete done[id];
-  else done[id] = new Date().toISOString();
+// 「できた」と「取り消す」は別のボタンにする。押した直後はカードが動くので、
+// すぐ続けて押された分(2回押し)は受け付けない
+let lastTap = 0;
+function setDone(id, on) {
+  const now = Date.now();
+  if (now - lastTap < 600) return;
+  lastTap = now;
+  if (on) done[id] = new Date().toISOString();
+  else delete done[id];
   saveDone();
   render(id);
 }
@@ -56,7 +62,10 @@ function card(t, i) {
     + `<span class="num" aria-hidden="true">${d ? '✓' : i + 1}</span>`
     + `<h2>${esc(t.title)}</h2>`
     + (t.desc ? `<p>${esc(t.desc)}</p>` : '')
-    + `<button type="button" class="doneBtn" data-task="${esc(t.id)}" aria-pressed="${d}">${d ? 'できた・取り消す' : 'できた'}</button>`
+    + (d
+      ? `<div class="doneRow"><span>できた</span>`
+        + `<button type="button" class="link" data-undo="${esc(t.id)}" aria-label="「${esc(t.title)}」のできたを取り消す">取り消す</button></div>`
+      : `<button type="button" class="doneBtn" data-task="${esc(t.id)}">できた</button>`)
     + `</article>`;
 }
 
@@ -81,7 +90,8 @@ function render(focusTask) {
 
   // 押したボタンにフォーカスを戻す(キーボード操作のため)
   if (focusTask) {
-    const b = $('cards').querySelector(`[data-task="${CSS.escape(focusTask)}"]`);
+    const id = CSS.escape(focusTask);
+    const b = $('cards').querySelector(`[data-task="${id}"], [data-undo="${id}"]`);
     if (b) b.focus();
   }
 }
@@ -103,8 +113,9 @@ function askRow(x) {
 
 function renderHits(word) {
   const w = norm(word);
+  // 先輩が書いた言い換えの言葉(keywords)でも探す。例: 「印刷」→ プリンター
   const hits = guide.questions.filter((x) =>
-    !w || [x.question, x.answer, x.wiki, x.role].some((v) => norm(v).includes(w)));
+    !w || [x.question, x.answer, x.wiki, x.role, ...(x.keywords || [])].some((v) => norm(v).includes(w)));
   if (!hits.length) {
     $('hits').innerHTML = `<div class="none"><p>「${esc(word.trim())}」はこのガイドにはまだありません。</p>`
       + `<div class="who"><span>聞く人</span><strong>${esc(guide.settings.fallbackRole || '指導役の先輩')}</strong></div></div>`;
@@ -165,7 +176,8 @@ function isValid(g) {
       && typeof t.order === 'number' && typeof t.title === 'string')
     && Array.isArray(g.questions)
     && g.questions.every((x) => x && typeof x.id === 'string' && typeof x.question === 'string'
-      && typeof x.role === 'string')
+      && typeof x.role === 'string'
+      && (!x.keywords || (Array.isArray(x.keywords) && x.keywords.every((k) => typeof k === 'string'))))
     && (!g.faq || (Array.isArray(g.faq) && g.faq.every((f) => f && typeof f.id === 'string')));
 }
 
@@ -201,7 +213,9 @@ async function start() {
 
 document.addEventListener('click', (e) => {
   const t = e.target.closest('[data-task]');
-  if (t) { toggle(t.dataset.task); return; }
+  if (t) { setDone(t.dataset.task, true); return; }
+  const u = e.target.closest('[data-undo]');
+  if (u) { setDone(u.dataset.undo, false); return; }
   const d = e.target.closest('[data-day]');
   if (d) {
     sel = Number(d.dataset.day);

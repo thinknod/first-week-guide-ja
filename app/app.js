@@ -61,7 +61,7 @@ function card(t, i) {
 }
 
 function render(focusTask) {
-  $('title').textContent = sel === today.day ? '今日やること' : `${sel}日目にやること`;
+  $('title').textContent = sel === today.day ? 'わたしの最初の週' : `${sel}日目にやること`;
   $('date').textContent = `${sel}日目・${fmt(dateOf(sel))}`;
 
   $('days').innerHTML = DAYS.map((n) =>

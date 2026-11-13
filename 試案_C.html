@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>試案C カレンダー型</title>
+<style>
+:root{--bg:#f6f5f2;--surface:#fff;--text:#1d1d1f;--muted:#6b6b70;--line:#e3e1dc;--accent:#2f6f5e;--accent-weak:#e3efe9;--on-accent:#fff;--warn:#8a5200;--warn-weak:#fbefd9;--scrim:rgba(0,0,0,.35)}
+@media (prefers-color-scheme:dark){:root{--bg:#161716;--surface:#212322;--text:#ececea;--muted:#a3a3a0;--line:#353836;--accent:#7cc3a8;--accent-weak:#22362f;--on-accent:#10241d;--warn:#e6b366;--warn-weak:#3a2e1b;--scrim:rgba(0,0,0,.6)}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif}
+button,input{font:inherit;color:inherit}
+.proto{max-width:390px;margin:0 auto;padding:6px 16px;font-size:12px;color:var(--muted);text-align:center;border-bottom:1px dashed var(--line)}
+.wrap{max-width:390px;margin:0 auto;padding:12px 16px 40px}
+.top{display:flex;align-items:baseline;justify-content:space-between}
+.top .app{margin:0;font-size:15px;font-weight:700}
+.top .range{font-size:12px;color:var(--muted)}
+/* 誰に聞く? */
+.ask{margin:10px 0 0}
+.sform{display:flex;align-items:center;height:46px;padding:0 4px 0 14px;border:1px solid var(--line);border-radius:99px;background:var(--surface)}
+.sform label{flex:none;font-size:14px;font-weight:700;color:var(--accent);margin-right:8px}
+.sform input{flex:1;min-width:0;height:100%;border:0;background:none;outline-offset:-2px}
+.sform button{flex:none;height:38px;padding:0 14px;border:0;border-radius:99px;background:var(--accent);color:var(--on-accent);font-size:14px;font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chips button{min-height:34px;padding:0 12px;border:1px solid var(--line);border-radius:99px;background:var(--surface);font-size:13px}
+.note{margin:12px 0 0;padding:6px 10px;border-radius:8px;background:var(--warn-weak);color:var(--warn);font-size:13px}
+/* 週のカレンダー */
+.week{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:14px 0 0}
+.week button{display:flex;flex-direction:column;align-items:center;padding:8px 0 6px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.week .dow{font-size:11px;color:var(--muted)}
+.week .date{font-size:20px;font-weight:700;line-height:1.2}
+.week .dn{font-size:10px;color:var(--muted)}
+.week .dots{display:flex;gap:3px;height:8px;margin-top:4px}
+.week .dots i{width:6px;height:6px;border-radius:50%;border:1px solid var(--accent)}
+.week .dots i.on{background:var(--accent)}
+.week button.today{border-color:var(--accent);border-width:2px}
+.week button[aria-pressed=true]{background:var(--accent);border-color:var(--accent)}
+.week button[aria-pressed=true] *{color:var(--on-accent)}
+.week button[aria-pressed=true] .dots i{border-color:var(--on-accent)}
+.week button[aria-pressed=true] .dots i.on{background:var(--on-accent)}
+/* その日のタイムライン */
+.dayhead{display:flex;align-items:baseline;justify-content:space-between;margin:18px 0 8px}
+.dayhead h2{margin:0;font-size:18px}
+.dayhead span{font-size:13px;color:var(--muted)}
+.tl{list-style:none;margin:0;padding:0;position:relative}
+.tl::before{content:"";position:absolute;left:15px;top:16px;bottom:16px;width:2px;background:var(--line)}
+.tl li{position:relative;display:grid;grid-template-columns:32px 1fr;gap:12px;padding:6px 0}
+.tl .chk{position:relative;z-index:1;width:32px;height:32px;margin-top:6px;border:2px solid var(--accent);border-radius:50%;background:var(--surface);color:var(--on-accent);font-weight:700;padding:0}
+.tl .chk[aria-pressed=true]{background:var(--accent)}
+.tl .box{padding:10px 12px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.tl h3{margin:0;font-size:16px}
+.tl p{margin:0;font-size:13px;color:var(--muted)}
+.tl .rel{margin-top:4px;padding:0;border:0;background:none;color:var(--accent);font-size:13px;text-decoration:underline}
+.tl li.done h3{text-decoration:line-through;color:var(--muted)}
+.tl li.done .box{background:transparent}
+.empty{padding:20px 16px;text-align:center;color:var(--muted);background:var(--surface);border:1px dashed var(--line);border-radius:12px}
+/* answer sheet */
+.scrim{position:fixed;inset:0;background:var(--scrim)}
+.sheet{position:fixed;left:0;right:0;bottom:0;max-width:390px;max-height:80vh;overflow:auto;margin:0 auto;padding:16px 16px 24px;background:var(--surface);border-radius:16px 16px 0 0}
+.sheet .close{float:right;border:0;background:none;color:var(--accent);font-size:14px;padding:4px}
+.sheet h2{margin:0 0 12px;font-size:18px;line-height:1.4}
+.cat{margin:0;font-size:12px;color:var(--muted)}
+.who{display:flex;align-items:baseline;gap:10px;padding:10px 12px;margin:0 0 12px;border-radius:10px;background:var(--accent-weak)}
+.who span{font-size:12px;color:var(--muted)}
+.who strong{font-size:20px}
+.ans{margin:0 0 10px}
+.wiki{margin:0;font-size:13px;color:var(--muted)}
+.badge{display:inline-block;margin:0 0 8px;padding:2px 10px;border-radius:99px;background:var(--warn-weak);color:var(--warn);font-size:13px;font-weight:700}
+.hits{list-style:none;margin:0;padding:0}
+.hits button{display:block;width:100%;text-align:left;padding:10px 0;border:0;border-top:1px solid var(--line);background:none}
+.hits small{display:block;color:var(--muted)}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<p class="proto">試案C・日付カレンダー型(390px基準)</p>
+<main class="wrap">
+  <div class="top"><p class="app">最初の週ガイド</p><span class="range" id="range"></span></div>
+  <section class="ask" aria-label="誰に聞く?">
+    <form class="sform" id="sform" role="search"><label for="q">誰に聞く?</label><input id="q" type="search" placeholder="例: カード"><button>探す</button></form>
+    <div class="chips" id="quick"></div>
+  </section>
+  <p class="note" id="note" hidden></p>
+  <nav class="week" id="week" aria-label="最初の週"></nav>
+  <section>
+    <div class="dayhead"><h2 id="head"></h2><span id="count"></span></div>
+    <ol class="tl" id="list"></ol>
+  </section>
+</main>
+<div class="scrim" id="scrim" hidden></div>
+<section class="sheet" id="sheet" role="dialog" aria-modal="true" hidden><button class="close">閉じる</button><div id="sheetBody"></div></section>
+<script>
+/* ===== 共通: 03_画面フロー.md の例の値 ===== */
+const START='2026-11-16', FALLBACK='指導役の先輩', KEY='fwg-done';
+const TASKS=[
+ {id:'t01',day:1,order:1,title:'出勤を押す',desc:'グループウェア > 勤怠 > 出勤',rel:'q08'},
+ {id:'t02',day:1,order:2,title:'パスワードを変える',desc:'最初のパスワードから自分のものに変える',rel:'q05'},
+ {id:'t03',day:1,order:3,title:'メールの署名を作る',desc:'チームのひな形は先輩からもらう',rel:'q07'},
+ {id:'t04',day:2,order:1,title:'必須研修を申し込む',desc:'入社1か月以内に2コース',rel:'q10'},
+ {id:'t05',day:3,order:1,title:'名刺を申請する',desc:'英語表記もあわせて書く',rel:'q04'}];
+const FAQS=[
+ {id:'q01',cat:'総務',q:'法人カードを作りたい',kw:'カード, クレジット',a:'チーム長の承認を受けたあと、経営支援に申請書を出す。通常3日',who:'経営支援担当',wiki:'総務 > 法人カード',status:'あり'},
+ {id:'q03',cat:'総務',q:'会議室を予約したい',kw:'会議, 部屋, 予約',a:'グループウェア > 設備予約 > 会議室。30分単位',who:'経営支援担当',wiki:'総務 > 会議室',status:'あり'},
+ {id:'q05',cat:'IT',q:'パスワードを変えたい / 忘れた',kw:'ログイン, PW',a:'グループウェアのトップ > 個人情報 > パスワード。忘れたらログイン画面の「パスワードを忘れた場合」',who:'ITサポート担当',wiki:'IT > パスワード',status:'あり'},
+ {id:'q09',cat:'人事',q:'休暇を取りたい',kw:'休み, 有給',a:'入社した月から使える。グループウェア > 勤怠 > 休暇申請、チーム長の承認',who:'人事担当',wiki:'人事 > 休暇',status:'あり'},
+ {id:'q11',cat:'IT',q:'Wi-Fiにつなぎたい',kw:'無線, ネット',a:'',who:'指導役の先輩',wiki:'',status:'要確認'}];
+const QUICK=[['q05','パスワード'],['q01','法人カード'],['q03','会議室'],['q09','休暇']];
+const $=id=>document.getElementById(id);
+const faq=id=>FAQS.find(f=>f.id===id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let done=(()=>{try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return{}}})();
+function toggle(id){if(done[id])delete done[id];else done[id]=new Date().toISOString();try{localStorage.setItem(KEY,JSON.stringify(done))}catch(e){}render()}
+function dateOf(n){const d=new Date(START+'T00:00:00');d.setDate(d.getDate()+n-1);return d}
+function fmt(d){return `${d.getMonth()+1}月${d.getDate()}日(${'日月火水木金土'[d.getDay()]})`}
+function today(){
+ const p=+new URLSearchParams(location.search).get('day'); if(p>=1&&p<=5)return{day:p,note:'',real:true};
+ const t=new Date();t.setHours(0,0,0,0);const diff=Math.round((t-dateOf(1))/864e5);
+ if(diff<0)return{day:1,note:`まだ始まっていません。${fmt(dateOf(1))}が1日目です`,real:false};
+ if(diff>4)return{day:5,note:'最初の週は終わりました',real:false};
+ return{day:diff+1,note:'',real:true}}
+const T=today(); let sel=T.day;
+const tasksOf=n=>TASKS.filter(t=>t.day===n).sort((a,b)=>a.order-b.order);
+function openSheet(html){$('sheetBody').innerHTML=html;$('sheet').hidden=$('scrim').hidden=false;$('sheet').querySelector('.close').focus()}
+function closeSheet(){$('sheet').hidden=$('scrim').hidden=true}
+$('scrim').onclick=closeSheet;$('sheet').querySelector('.close').onclick=closeSheet;
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet()});
+function answerHTML(f){
+ const who=`<div class="who"><span>聞く人</span><strong>${f.who}</strong></div>`;
+ if(f.status==='要確認')return `<p class="cat">${f.cat}</p><h2>${f.q}</h2><p class="badge">要確認</p>${who}<p class="ans">Wikiにまだ答えがありません。${f.who}に聞いてください。</p>`;
+ return `<p class="cat">${f.cat}</p><h2>${f.q}</h2>${who}<p class="ans">${f.a}</p><p class="wiki">Wikiの場所: ${f.wiki}</p>`}
+function search(q){
+ q=q.trim();const k=q.toLowerCase();
+ const hits=q?FAQS.filter(f=>(f.q+f.kw+f.cat+f.a).toLowerCase().includes(k)):FAQS;
+ let h=`<h2>${q?`「${esc(q)}」の結果`:'すべての質問'}</h2>`;
+ h+=hits.length?'<ul class="hits">'+hits.map(f=>`<li><button data-faq="${f.id}">${f.q}<small>${f.who}${f.status==='要確認'?'・要確認':''}</small></button></li>`).join('')+'</ul>'
+  :`<p class="ans">このガイドにはまだありません。</p><div class="who"><span>聞く人</span><strong>${FALLBACK}</strong></div>`;
+ openSheet(h)}
+document.addEventListener('click',e=>{
+ const f=e.target.closest('[data-faq]');if(f){openSheet(answerHTML(faq(f.dataset.faq)));return}
+ if(e.target.closest('[data-all]')){search('');return}
+ const t=e.target.closest('[data-task]');if(t){toggle(t.dataset.task);return}
+ const d=e.target.closest('[data-day]');if(d){sel=+d.dataset.day;render()}});
+$('sform').onsubmit=e=>{e.preventDefault();search($('q').value)};
+$('note').textContent=T.note;$('note').hidden=!T.note;
+/* ===== 試案C: 日付カレンダー型 ===== */
+$('quick').innerHTML=QUICK.map(([id,l])=>`<button data-faq="${id}">${l}</button>`).join('')+'<button data-all>すべて</button>';
+const d1=dateOf(1),d5=dateOf(5);
+$('range').textContent=`${d1.getMonth()+1}/${d1.getDate()}〜${d5.getMonth()+1}/${d5.getDate()}`;
+function item(t){
+ const f=faq(t.rel),d=!!done[t.id];
+ return `<li class="${d?'done':''}"><button class="chk" data-task="${t.id}" aria-pressed="${d}" aria-label="${t.title}をできたにする">${d?'✓':''}</button><div class="box"><h3>${t.title}</h3><p>${t.desc}</p>${f?`<button class="rel" data-faq="${f.id}">関連する答え(${f.who})</button>`:''}</div></li>`}
+function render(){
+ $('week').innerHTML=[1,2,3,4,5].map(n=>{
+  const dt=dateOf(n),ts=tasksOf(n);
+  const dots=ts.map(t=>`<i class="${done[t.id]?'on':''}"></i>`).join('');
+  return `<button data-day="${n}" aria-pressed="${n===sel}" class="${T.real&&n===T.day?'today':''}"><span class="dow">${'日月火水木金土'[dt.getDay()]}</span><span class="date">${dt.getDate()}</span><span class="dn">${T.real&&n===T.day?'今日':n+'日目'}</span><span class="dots">${dots}</span></button>`}).join('');
+ const ts=tasksOf(sel),dn=ts.filter(t=>done[t.id]).length;
+ $('head').textContent=(T.real&&sel===T.day?'今日やること':`${sel}日目にやること`)+` ・${fmt(dateOf(sel))}`;
+ $('count').textContent=ts.length?`${dn}/${ts.length}`:'';
+ $('list').innerHTML=ts.length?ts.map(item).join(''):'<li class="empty" style="display:block">この日のやることはまだありません</li>'}
+render();
+</script>
+</body>
+</html>

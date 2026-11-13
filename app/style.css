@@ -1,0 +1,142 @@
+/* 色は DESIGN.md 2章の表の値だけを使う */
+:root {
+  --bg: #f6f5f2;
+  --surface: #ffffff;
+  --text: #1d1d1f;
+  --muted: #636368;
+  --line: #e3e1dc;
+  --accent: #2f6f5e;
+  --accent-weak: #e3efe9;
+  --on-accent: #ffffff;
+  --warn: #8a5200;
+  --warn-weak: #fbefd9;
+  --scrim: rgba(0, 0, 0, .35);
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161716;
+    --surface: #212322;
+    --text: #ececea;
+    --muted: #a3a3a0;
+    --line: #353836;
+    --accent: #7cc3a8;
+    --accent-weak: #22362f;
+    --on-accent: #10241d;
+    --warn: #e6b366;
+    --warn-weak: #3a2e1b;
+    --scrim: rgba(0, 0, 0, .6);
+  }
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 400 16px/1.6 -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+/* 390pxを基準に中央へ */
+.wrap { max-width: 390px; margin: 0 auto; padding: 12px 16px 24px; }
+
+/* 5.1 ヘッダー */
+.app { margin: 0; font-size: 13px; color: var(--muted); }
+h1 { margin: 0; font-size: 26px; font-weight: 700; line-height: 1.3; }
+.date { margin: 0; font-size: 14px; font-weight: 500; color: var(--muted); }
+.note { margin: 6px 0 0; padding: 6px 10px; border-radius: 8px; background: var(--warn-weak); color: var(--warn); font-size: 13px; }
+.progress { margin: 10px 0 4px; height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.progress div { height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+.ptext { margin: 0; font-size: 13px; color: var(--muted); }
+
+/* 5.2 日にちボタン */
+.days { display: flex; gap: 6px; margin: 12px 0; }
+.days button {
+  flex: 1; min-width: 0; min-height: 40px; padding: 0;
+  border: 1px solid var(--line); border-radius: 99px;
+  background: var(--surface); font-size: 13px; white-space: nowrap;
+}
+.days button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 700; }
+
+/* 5.3 やることカード */
+.cards { display: grid; gap: 12px; }
+.card {
+  position: relative; padding: 16px 16px 14px 60px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
+}
+.num {
+  position: absolute; left: 16px; top: 16px; width: 32px; height: 32px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--accent-weak); color: var(--accent); font-weight: 700;
+}
+.card h2 { margin: 0 0 2px; font-size: 18px; font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; }
+.card p { margin: 0; font-size: 14px; color: var(--muted); overflow-wrap: anywhere; }
+.doneBtn {
+  display: block; width: 100%; margin-top: 12px; min-height: 44px;
+  border: 0; border-radius: 10px; background: var(--accent); color: var(--on-accent); font-weight: 700;
+}
+.card.done { background: transparent; box-shadow: none; }
+.card.done h2 { color: var(--muted); text-decoration: line-through; }
+.card.done .num { background: var(--accent); color: var(--on-accent); }
+.card.done p { display: none; }
+.card.done .doneBtn { background: none; border: 1px solid var(--line); color: var(--muted); font-weight: 500; }
+.empty { margin: 0; padding: 24px 16px; text-align: center; color: var(--muted); background: var(--surface); border: 1px dashed var(--line); border-radius: 16px; }
+
+/* E. 読み込めない */
+.error { padding: 24px 16px; background: var(--surface); border-radius: 16px; }
+.error h1 { font-size: 18px; line-height: 1.4; }
+.error p { margin: 6px 0 12px; font-size: 14px; color: var(--muted); }
+.error button { min-height: 44px; padding: 0 16px; border: 0; border-radius: 10px; background: var(--accent); color: var(--on-accent); font-weight: 700; }
+
+/* 5.4 「誰に聞く?」固定バー(A のときだけ) */
+body.withbar .wrap { padding-bottom: 170px; }
+.askbar {
+  position: fixed; left: 0; right: 0; bottom: 0; max-width: 390px; margin: 0 auto;
+  padding: 10px 16px calc(12px + env(safe-area-inset-bottom));
+  background: var(--surface); border-top: 1px solid var(--line); box-shadow: 0 -4px 16px rgba(0, 0, 0, .06);
+}
+.askbar h2 { margin: 0 0 6px; font-size: 14px; font-weight: 700; }
+.askbar .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+.faqBtn {
+  display: grid; place-items: center; min-height: 40px; padding: 0 8px;
+  border: 1px solid var(--line); border-radius: 10px; background: var(--bg);
+  color: var(--text); font-size: 14px; text-decoration: none; text-align: center;
+}
+.faqBtn.more { grid-column: 1 / -1; background: var(--accent-weak); border-color: transparent; color: var(--accent); font-weight: 600; }
+
+/* B・C 共通 */
+.topnav { display: flex; justify-content: space-between; margin: 0 0 4px; }
+.link { min-height: 40px; padding: 0 2px; border: 0; background: none; color: var(--accent); font-size: 14px; }
+h1:focus { outline: none; }
+.cat { margin: 16px 0 6px; font-size: 12px; color: var(--muted); }
+.who { margin: 12px 0; padding: 10px 12px; border-radius: 10px; background: var(--accent-weak); }
+.who span { display: block; font-size: 12px; color: var(--muted); }
+.who strong { display: block; font-size: 20px; font-weight: 700; line-height: 1.6; color: var(--text); }
+
+/* 5.6 検索 */
+.sform { display: flex; gap: 6px; margin: 12px 0 4px; }
+.sform input {
+  flex: 1; min-width: 0; min-height: 40px; padding: 0 12px;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--text); font: inherit;
+}
+.sform input::placeholder { color: var(--muted); }
+.sform button { min-height: 40px; padding: 0 16px; border: 0; border-radius: 8px; background: var(--accent); color: var(--on-accent); font-weight: 700; }
+.hits { margin: 0; padding: 0; list-style: none; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+.hits li + li { border-top: 1px solid var(--line); }
+.hit { display: block; padding: 12px 16px; color: var(--text); text-decoration: none; }
+.hq { display: block; font-size: 16px; font-weight: 500; overflow-wrap: anywhere; }
+.hr { display: block; font-size: 13px; color: var(--muted); }
+.none { margin-top: 16px; padding: 16px; background: var(--surface); border: 1px dashed var(--line); border-radius: 16px; }
+.none p { margin: 0; }
+
+/* 5.5 答えの詳細 */
+#answerBody { padding: 0 16px 24px; background: var(--surface); border-radius: 16px; overflow: hidden; }
+#answerBody .cat { margin-top: 0; padding-top: 16px; }
+#answerBody h1 { font-size: 18px; line-height: 1.4; overflow-wrap: anywhere; }
+.badge { display: inline-block; margin: 8px 0 0; padding: 2px 10px; border-radius: 99px; background: var(--warn-weak); color: var(--warn); font-size: 13px; font-weight: 700; }
+.ans { margin: 0; overflow-wrap: anywhere; }
+.wiki { margin: 12px 0 0; font-size: 13px; color: var(--muted); }

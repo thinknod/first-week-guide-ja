@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>試案A リスト型</title>
+<style>
+:root{--bg:#f6f5f2;--surface:#fff;--text:#1d1d1f;--muted:#6b6b70;--line:#e3e1dc;--accent:#2f6f5e;--accent-weak:#e3efe9;--on-accent:#fff;--warn:#8a5200;--warn-weak:#fbefd9;--scrim:rgba(0,0,0,.35)}
+@media (prefers-color-scheme:dark){:root{--bg:#161716;--surface:#212322;--text:#ececea;--muted:#a3a3a0;--line:#353836;--accent:#7cc3a8;--accent-weak:#22362f;--on-accent:#10241d;--warn:#e6b366;--warn-weak:#3a2e1b;--scrim:rgba(0,0,0,.6)}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif}
+button,input{font:inherit;color:inherit}
+.proto{max-width:390px;margin:0 auto;padding:6px 16px;font-size:12px;color:var(--muted);text-align:center;border-bottom:1px dashed var(--line)}
+.wrap{max-width:390px;margin:0 auto;padding:12px 16px 40px}
+header .app{margin:0;font-size:13px;color:var(--muted)}
+h1{margin:0;font-size:24px;line-height:1.3}
+h1 span{font-size:15px;font-weight:500;color:var(--muted);margin-left:6px}
+.note{margin:6px 0 0;padding:6px 10px;border-radius:8px;background:var(--warn-weak);color:var(--warn);font-size:13px}
+.ask{margin:14px 0;padding:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.ask h2{margin:0 0 8px;font-size:15px}
+#sform{display:flex;gap:6px}
+#sform input{flex:1;min-width:0;height:42px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+#sform button{height:42px;padding:0 14px;border:0;border-radius:8px;background:var(--accent);color:var(--on-accent);font-weight:600}
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
+.quick button{min-height:40px;padding:4px 2px;border:1px solid var(--line);border-radius:8px;background:var(--surface);font-size:13px}
+.all{margin-top:6px;padding:4px 0;border:0;background:none;color:var(--accent);font-size:13px;text-decoration:underline}
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.tabs button{position:relative;min-height:44px;border:0;border-left:1px solid var(--line);background:none;font-size:13px}
+.tabs button:first-child{border-left:0}
+.tabs button[aria-pressed=true]{background:var(--accent);color:var(--on-accent);font-weight:700}
+.tabs i{display:block;font-style:normal;font-size:10px;line-height:1}
+.listhead{display:flex;align-items:center;justify-content:space-between;margin:16px 0 6px}
+.listhead h2{margin:0;font-size:17px}
+.listhead h2 span{font-size:14px;color:var(--muted);font-weight:500}
+.rem{display:flex;align-items:center;gap:4px;font-size:13px;color:var(--muted)}
+.list{list-style:none;margin:0;padding:0;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.row{padding:10px 12px;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.row label{display:flex;align-items:center;gap:10px;min-height:32px;font-weight:600}
+.row input{width:24px;height:24px;margin:0;accent-color:var(--accent);flex:none}
+.row .d{margin:0 0 0 34px;font-size:13px;color:var(--muted)}
+.row .rel{margin:4px 0 0 34px;padding:0;border:0;background:none;color:var(--accent);font-size:13px;text-decoration:underline}
+.row.done .t{text-decoration:line-through;color:var(--muted)}
+.empty{padding:16px;color:var(--muted);text-align:center;font-size:14px}
+/* answer sheet */
+.scrim{position:fixed;inset:0;background:var(--scrim)}
+.sheet{position:fixed;left:0;right:0;bottom:0;max-width:390px;max-height:80vh;overflow:auto;margin:0 auto;padding:16px 16px 24px;background:var(--surface);border-radius:16px 16px 0 0}
+.sheet .close{float:right;border:0;background:none;color:var(--accent);font-size:14px;padding:4px}
+.sheet h2{margin:0 0 12px;font-size:18px;line-height:1.4}
+.cat{margin:0;font-size:12px;color:var(--muted)}
+.who{display:flex;align-items:baseline;gap:10px;padding:10px 12px;margin:0 0 12px;border-radius:10px;background:var(--accent-weak)}
+.who span{font-size:12px;color:var(--muted)}
+.who strong{font-size:20px}
+.ans{margin:0 0 10px}
+.wiki{margin:0;font-size:13px;color:var(--muted)}
+.badge{display:inline-block;margin:0 0 8px;padding:2px 10px;border-radius:99px;background:var(--warn-weak);color:var(--warn);font-size:13px;font-weight:700}
+.hits{list-style:none;margin:0;padding:0}
+.hits button{display:block;width:100%;text-align:left;padding:10px 0;border:0;border-top:1px solid var(--line);background:none}
+.hits small{display:block;color:var(--muted)}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<p class="proto">試案A・リスト型(390px基準)</p>
+<main class="wrap">
+  <header>
+    <p class="app">最初の週ガイド</p>
+    <h1 id="title"></h1>
+    <p class="note" id="note" hidden></p>
+  </header>
+  <section class="ask" aria-labelledby="askh">
+    <h2 id="askh">誰に聞く?</h2>
+    <form id="sform" role="search"><input id="q" type="search" placeholder="例: カード、休み" aria-label="質問を探す"><button>探す</button></form>
+    <div class="quick" id="quick"></div>
+    <button class="all" data-all>すべての質問を見る</button>
+  </section>
+  <nav class="tabs" id="tabs" aria-label="日にち"></nav>
+  <section>
+    <div class="listhead"><h2><span id="head"></span> <span id="count"></span></h2><label class="rem"><input type="checkbox" id="remain">残りだけ</label></div>
+    <ul class="list" id="list"></ul>
+  </section>
+</main>
+<div class="scrim" id="scrim" hidden></div>
+<section class="sheet" id="sheet" role="dialog" aria-modal="true" hidden><button class="close">閉じる</button><div id="sheetBody"></div></section>
+<script>
+/* ===== 共通: 03_画面フロー.md の例の値 ===== */
+const START='2026-11-16', FALLBACK='指導役の先輩', KEY='fwg-done';
+const TASKS=[
+ {id:'t01',day:1,order:1,title:'出勤を押す',desc:'グループウェア > 勤怠 > 出勤',rel:'q08'},
+ {id:'t02',day:1,order:2,title:'パスワードを変える',desc:'最初のパスワードから自分のものに変える',rel:'q05'},
+ {id:'t03',day:1,order:3,title:'メールの署名を作る',desc:'チームのひな形は先輩からもらう',rel:'q07'},
+ {id:'t04',day:2,order:1,title:'必須研修を申し込む',desc:'入社1か月以内に2コース',rel:'q10'},
+ {id:'t05',day:3,order:1,title:'名刺を申請する',desc:'英語表記もあわせて書く',rel:'q04'}];
+const FAQS=[
+ {id:'q01',cat:'総務',q:'法人カードを作りたい',kw:'カード, クレジット',a:'チーム長の承認を受けたあと、経営支援に申請書を出す。通常3日',who:'経営支援担当',wiki:'総務 > 法人カード',status:'あり'},
+ {id:'q03',cat:'総務',q:'会議室を予約したい',kw:'会議, 部屋, 予約',a:'グループウェア > 設備予約 > 会議室。30分単位',who:'経営支援担当',wiki:'総務 > 会議室',status:'あり'},
+ {id:'q05',cat:'IT',q:'パスワードを変えたい / 忘れた',kw:'ログイン, PW',a:'グループウェアのトップ > 個人情報 > パスワード。忘れたらログイン画面の「パスワードを忘れた場合」',who:'ITサポート担当',wiki:'IT > パスワード',status:'あり'},
+ {id:'q09',cat:'人事',q:'休暇を取りたい',kw:'休み, 有給',a:'入社した月から使える。グループウェア > 勤怠 > 休暇申請、チーム長の承認',who:'人事担当',wiki:'人事 > 休暇',status:'あり'},
+ {id:'q11',cat:'IT',q:'Wi-Fiにつなぎたい',kw:'無線, ネット',a:'',who:'指導役の先輩',wiki:'',status:'要確認'}];
+const QUICK=[['q05','パスワード'],['q01','法人カード'],['q03','会議室'],['q09','休暇']];
+const $=id=>document.getElementById(id);
+const faq=id=>FAQS.find(f=>f.id===id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let done=(()=>{try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return{}}})();
+function toggle(id){if(done[id])delete done[id];else done[id]=new Date().toISOString();try{localStorage.setItem(KEY,JSON.stringify(done))}catch(e){}render()}
+function dateOf(n){const d=new Date(START+'T00:00:00');d.setDate(d.getDate()+n-1);return d}
+function fmt(d){return `${d.getMonth()+1}月${d.getDate()}日(${'日月火水木金土'[d.getDay()]})`}
+function today(){
+ const p=+new URLSearchParams(location.search).get('day'); if(p>=1&&p<=5)return{day:p,note:''};
+ const t=new Date();t.setHours(0,0,0,0);const diff=Math.round((t-dateOf(1))/864e5);
+ if(diff<0)return{day:1,note:`まだ始まっていません。${fmt(dateOf(1))}が1日目です`};
+ if(diff>4)return{day:5,note:'最初の週は終わりました'};
+ return{day:diff+1,note:''}}
+const T=today(); let sel=T.day;
+const tasksOf=n=>TASKS.filter(t=>t.day===n).sort((a,b)=>a.order-b.order);
+/* 答えのシート(C. 答えの詳細 / B. 一覧の代わりの簡易表示) */
+function openSheet(html){$('sheetBody').innerHTML=html;$('sheet').hidden=$('scrim').hidden=false;$('sheet').querySelector('.close').focus()}
+function closeSheet(){$('sheet').hidden=$('scrim').hidden=true}
+$('scrim').onclick=closeSheet;$('sheet').querySelector('.close').onclick=closeSheet;
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet()});
+function answerHTML(f){
+ const who=`<div class="who"><span>聞く人</span><strong>${f.who}</strong></div>`;
+ if(f.status==='要確認')return `<p class="cat">${f.cat}</p><h2>${f.q}</h2><p class="badge">要確認</p>${who}<p class="ans">Wikiにまだ答えがありません。${f.who}に聞いてください。</p>`;
+ return `<p class="cat">${f.cat}</p><h2>${f.q}</h2>${who}<p class="ans">${f.a}</p><p class="wiki">Wikiの場所: ${f.wiki}</p>`}
+function search(q){
+ q=q.trim();const k=q.toLowerCase();
+ const hits=q?FAQS.filter(f=>(f.q+f.kw+f.cat+f.a).toLowerCase().includes(k)):FAQS;
+ let h=`<h2>${q?`「${esc(q)}」の結果`:'すべての質問'}</h2>`;
+ h+=hits.length?'<ul class="hits">'+hits.map(f=>`<li><button data-faq="${f.id}">${f.q}<small>${f.who}${f.status==='要確認'?'・要確認':''}</small></button></li>`).join('')+'</ul>'
+  :`<p class="ans">このガイドにはまだありません。</p><div class="who"><span>聞く人</span><strong>${FALLBACK}</strong></div>`;
+ openSheet(h)}
+document.addEventListener('click',e=>{
+ const f=e.target.closest('[data-faq]');if(f){openSheet(answerHTML(faq(f.dataset.faq)));return}
+ if(e.target.closest('[data-all]')){search('');return}
+ const d=e.target.closest('[data-day]');if(d){sel=+d.dataset.day;render()}});
+document.addEventListener('change',e=>{if(e.target.dataset.task)toggle(e.target.dataset.task)});
+$('sform').onsubmit=e=>{e.preventDefault();search($('q').value)};
+$('quick').innerHTML=QUICK.map(([id,l])=>`<button data-faq="${id}">${l}</button>`).join('');
+$('note').textContent=T.note;$('note').hidden=!T.note;
+/* ===== 試案A: リスト型 ===== */
+$('remain').onchange=()=>render();
+function row(t){
+ const f=faq(t.rel);
+ return `<li class="row ${done[t.id]?'done':''}"><label><input type="checkbox" data-task="${t.id}" ${done[t.id]?'checked':''}><span class="t">${t.title}</span></label><p class="d">${t.desc}</p>${f?`<button class="rel" data-faq="${f.id}">関連する答え(${f.who})</button>`:''}</li>`}
+function render(){
+ $('title').innerHTML=`${sel}日目<span>${fmt(dateOf(sel))}</span>`;
+ $('tabs').innerHTML=[1,2,3,4,5].map(n=>`<button aria-pressed="${n===sel}" data-day="${n}">${n}日目${n===T.day?'<i>今日</i>':''}</button>`).join('');
+ const ts=tasksOf(sel),dn=ts.filter(t=>done[t.id]).length;
+ $('head').textContent=sel===T.day?'今日やること':`${sel}日目にやること`;
+ $('count').textContent=ts.length?`${dn}/${ts.length} できた`:'';
+ const shown=$('remain').checked?ts.filter(t=>!done[t.id]):ts;
+ $('list').innerHTML=!ts.length?'<li class="empty">この日のやることはまだありません</li>':shown.length?shown.map(row).join(''):'<li class="empty">全部できました</li>'}
+render();
+</script>
+</body>
+</html>

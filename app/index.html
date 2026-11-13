@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>最初の週ガイド</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="wrap">
+  <!-- A. ホーム(今日やること) -->
+  <div id="home" hidden>
+    <header>
+      <p class="app" id="appName"></p>
+      <h1 id="title"></h1>
+      <p class="date" id="date"></p>
+      <p class="note" id="note" hidden></p>
+      <div class="progress" aria-hidden="true"><div id="bar"></div></div>
+      <p class="ptext" id="ptext" aria-live="polite"></p>
+    </header>
+    <nav class="days" id="days" aria-label="日にち"></nav>
+    <section class="cards" id="cards" aria-label="やること"></section>
+  </div>
+
+  <!-- B. 誰に聞く? 一覧 -->
+  <div id="ask" hidden>
+    <nav class="topnav"><button type="button" class="link" data-go="home">ホームへ</button></nav>
+    <h1 id="askTitle" tabindex="-1">誰に聞く?</h1>
+    <form class="sform" id="sform" role="search">
+      <input id="q" type="search" placeholder="例: カード、休み" aria-label="質問を絞り込む" autocomplete="off">
+      <button type="submit">探す</button>
+    </form>
+    <div id="hits" aria-live="polite"></div>
+  </div>
+
+  <!-- C. 答えの詳細 -->
+  <div id="answer" hidden>
+    <nav class="topnav">
+      <button type="button" class="link" id="back">戻る</button>
+      <button type="button" class="link" data-go="home">ホームへ</button>
+    </nav>
+    <article id="answerBody"></article>
+  </div>
+
+  <!-- E. 読み込めない -->
+  <div class="error" id="error" role="alert" hidden>
+    <h1>ガイドを読み込めませんでした</h1>
+    <p>指導役の先輩に伝えてください。</p>
+    <button type="button" id="retry">もう一度</button>
+  </div>
+</main>
+
+<!-- A の「誰に聞く?」入口(ホームのときだけ出す) -->
+<aside class="askbar" id="askbar" aria-labelledby="askh" hidden>
+  <h2 id="askh">誰に聞く?</h2>
+  <div class="grid" id="faq"></div>
+</aside>
+<script src="app.js"></script>
+</body>
+</html>
